@@ -7,8 +7,6 @@ require('dotenv').config();
 const app = express();
 app.use(cookieParser());
 app.use(express.json());
-const Grid = require('gridfs-stream');
-const mongoose = require('mongoose');
 
 const test = (req, res) => {
     res.json('test is working');
@@ -59,13 +57,17 @@ const registerUser = async (req, res) => {
         };
 
         const hashedPassword = await hashPassword(password);
+        const profilePhoto = null;
+        const coverPhoto = null;
         const user = await User.create({
             username,
             email,
             password: hashedPassword,
             role,
             profilePhoto,
+            coverPhoto,
         });
+        await user.save();
         return res.json(user);
     } catch(err) {
         console.log(err);
@@ -96,6 +98,7 @@ const loginUser = async (req, res) => {
                         name: user.username,
                         role: user.role,
                         profilePhoto: user.profilePhoto,
+                        coverPhoto: user.coverPhoto,
                     },
                     process.env.JWT_SECRET,
                     { expiresIn: '4y' }
@@ -106,7 +109,9 @@ const loginUser = async (req, res) => {
                 console.error("JWT Sign Error: ", err);
                 res.json({ err: 'Error generating token' });
             }
-        }        
+        } else {
+            res.json({ err: 'Password does not match which you have given while register!' })
+        }
     } catch(err) {
         console.log(err)
     }
@@ -136,36 +141,110 @@ const updateProfile = async (req, res) => {
     const token = req.cookies.token;
 
     if (!token) {
-        return res.status(401).json({ err: 'Not authenticated' });
+        return res.json({ err: 'Not authenticated' });
     }
 
     jwt.verify(token, process.env.JWT_SECRET, async (err, userData) => {
         if (err) {
-            return res.status(403).json({ err: 'Invalid token, please log in again' });
+            return res.json({ err: 'Invalid token, please log in again' });
         }
 
-        if (req.file) {
-            try {
-                const profilePhoto = req.file.path;
+        try {
+            let updateData = {};
 
-                const user = await User.findByIdAndUpdate(
-                    userData.id,
-                    { profilePhoto: profilePhoto },
-                    { new: true }
-                );
-
-                if (!user) {
-                    return res.json({ err: 'User not found' });
-                }
-
-                res.json({ message: 'Profile photo updated successfully', user });
-            } catch (error) {
-                res.json({ err: 'Error updating profile photo' });
+            if (req.files.profilePhoto) {
+                const profilePhoto = req.files.profilePhoto[0].path;
+                updateData.profilePhoto = profilePhoto;
             }
-        } else {
-            res.json({ err: 'No file uploaded' });
+
+            if (req.files.coverPhoto) {
+                const coverPhoto = req.files.coverPhoto[0].path;
+                updateData.coverPhoto = coverPhoto;
+            }
+
+            const user = await User.findByIdAndUpdate(
+                userData.id,
+                updateData,
+                { new: true }
+            );
+
+            if (!user) {
+                return res.json({ err: 'User not found' });
+            }
+
+            res.json({ message: 'Profile updated successfully', user });
+        } catch (error) {
+            console.error(error);
+            res.json({ err: 'Error updating profile' });
         }
     });
+};
+
+const verifyPhoto = (req, res) => {
+    const token = req.cookies.token;
+
+    if (!token) {
+        return res.json({ err: 'Not authenticated' });
+    }
+
+    jwt.verify(token, process.env.JWT_SECRET, async (err, userData) => {
+        if (err) {
+            return res.json({ err: 'Invalid token, please login again' });
+        }
+
+        try {
+            const user = await User.findById(userData.id);
+
+            if (!user) {
+                return res.json({ err: 'User not found' });
+            }
+
+            const response = {
+                profilePhotoExists: false,
+                coverPhotoExists: false,
+            };
+
+            if (user.profilePhoto) {
+                response.profilePhotoExists = true;
+                response.profilePhotoUrl = `${req.protocol}://${req.get('host')}/${user.profilePhoto}`;
+            }
+
+            if (user.coverPhoto) {
+                response.coverPhotoExists = true;
+                response.coverPhotoUrl = `${req.protocol}://${req.get('host')}/${user.coverPhoto}`;
+            }
+
+            res.json(response);
+
+        } catch (err) {
+            console.log("error verifying profile photo", err);
+            res.json({ err: 'Error occurred while verifying the profile photo' });
+        }
+    });
+};
+
+const updateUserDetails = async (req, res) => {
+    const { id, username, email, role } = req.body;
+
+    try {
+        const updatedUser = await User.findByIdAndUpdate(
+            id,
+            { username, email, role },
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedUser) {
+            return res.json({ err: 'User not found' });
+        }
+
+        return res.json({
+            message: 'Your details have been updated successfully',
+            user: updatedUser
+        });
+    } catch (err) {
+        console.error('Error updating user:', err);
+        return res.json({ err: 'Failed to update your details. Please try again!' });
+    }
 };
 
 const userDetails = (req, res) => {
@@ -190,5 +269,7 @@ module.exports = {
     logoutUser,
     timeValidate,
     updateProfile,
+    verifyPhoto,
+    updateUserDetails,
     userDetails,
 }

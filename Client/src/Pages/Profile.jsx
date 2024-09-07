@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { UserContext } from "../../Context/UserContext";
 import defaultBack from "../assets/backImage.webp";
 import defaultProf from "../assets/defaultProfile.png";
@@ -10,32 +10,24 @@ import axios from 'axios';
 const Profile = () => {
   const { user } = useContext(UserContext);
 
-  const [backgroundImage, setBackgroundImage] = useState(defaultBack);
-  const [profileImage, setProfileImage] = useState(defaultProf);
+  const [profilePhotoUrl, setProfilePhotoUrl] = useState(defaultProf);
+  const [coverPhotoUrl, setCoverPhotoUrl] = useState(defaultBack);
   const [showModal, setShowModal] = useState(false);
   const [postImage, setPostImage] = useState(null);
 
-  const [name, setName] = useState("John Doe");
-  const [email, setEmail] = useState("john@example.com");
-  const [role, setRole] = useState("Developer");
+  const [name, setName] = useState(user.name);
+  const [email, setEmail] = useState(user.email);
+  const [role, setRole] = useState(user.role);
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-
   const [tempName, setTempName] = useState(name);
   const [tempEmail, setTempEmail] = useState(email);
   const [tempRole, setTempRole] = useState(role);
 
-  const handleBackgroundChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setBackgroundImage(URL.createObjectURL(file));
-    }
-  };
-
   const handleProfileChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      setProfileImage(URL.createObjectURL(file));
+      setProfilePhotoUrl(URL.createObjectURL(file));
       const formData = new FormData();
       formData.append("profilePhoto", file);
 
@@ -45,7 +37,6 @@ const Profile = () => {
             'Content-Type' : 'multipart/form-data'
           }
         });
-        console.log("Response received from server:", responseData);
         if(responseData.err) {
           toast.error(responseData.err);
         } else {
@@ -54,6 +45,50 @@ const Profile = () => {
       } catch(err) {
         console.error("File upload failed:", err);
       }
+    }
+  };
+
+  useEffect(() => {
+    const fetchProfilePhoto = async () => {
+      try {
+        const { data } = await axios.get('/verifyPhoto');
+        console.log(user.id);
+        if (data.profilePhotoExists && data.profilePhotoUrl) {
+          setProfilePhotoUrl(data.profilePhotoUrl);
+        }
+
+        if(data.coverPhotoExists && data.coverPhotoUrl) {
+            setCoverPhotoUrl(data.coverPhotoUrl);
+        }
+      } catch (err) {
+        console.error("Error fetching profile photo:", err);
+      }
+    };
+  
+    fetchProfilePhoto();
+  }, [user.id]);
+
+  const handleBackgroundChange = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        setCoverPhotoUrl(URL.createObjectURL(file));
+        const formData = new FormData();
+        formData.append("coverPhoto", file);
+  
+        try {
+            const { data:responseData } = await axios.post('/updateProfile', formData, {
+                headers: {
+                'Content-Type' : 'multipart/form-data'
+                }
+            });
+            if(responseData.err) {
+                toast.error(responseData.err);
+            } else {
+                toast.success(responseData.message);
+            }
+        } catch(err) {
+            console.error("File upload failed:", err);
+        }
     }
   };
 
@@ -77,11 +112,30 @@ const Profile = () => {
     document.getElementById(inputId).click();
   };
 
-  const handleSaveChanges = () => {
-    setName(tempName);
-    setEmail(tempEmail);
-    setRole(tempRole);
-    setIsEditModalOpen(false);
+  const handleSaveChanges = async () => {
+    try {
+      const updatedData = {
+        id: user.id,
+        username: tempName,
+        email: tempEmail,
+        role: tempRole,
+      };
+
+      const { data: responseData } = await axios.post('/updateUserDetails', updatedData);
+
+      if (responseData.err) {
+        toast.error(responseData.err);
+      } else {
+        setName(tempName);
+        setEmail(tempEmail);
+        setRole(tempRole);
+        setIsEditModalOpen(false);
+        toast.success("Details updated successfully.");
+      }
+    } catch (err) {
+      console.error("Failed to save changes:", err);
+      toast.error("Failed to update details. Please try again.");
+    }
   };
 
   const handleCancelEdit = () => {
@@ -114,7 +168,7 @@ const Profile = () => {
               </div>
             </div>
             <img
-              src={backgroundImage}
+              src={coverPhotoUrl}
               alt="Background"
               className="w-full h-60 object-cover rounded-lg z-0"
             />
@@ -122,7 +176,7 @@ const Profile = () => {
               <div className="relative group cursor-pointer">
                 <label htmlFor="profileInput" className="cursor-pointer">
                   <img
-                    src={profileImage}
+                    src={profilePhotoUrl}
                     alt="Profile"
                     className="h-40 z-0 mt-[-5rem] rounded-full border-4 border-white"
                   />
@@ -143,12 +197,12 @@ const Profile = () => {
               </div>
 
               <p className="border border-solid mt-[-1rem] px-4 py-1 rounded-lg bg-purple-800 font-semibold text-white text-sm z-10">
-                {user.role}
+                {role}
               </p>
             </div>
 
             <div className="flex flex-col items-center">
-              <h1 className="text-3xl font-bold text-gray-700 mt-5">{user.name}</h1>
+              <h1 className="text-3xl font-bold text-gray-700 mt-5">{name}</h1>
               <div className="flex mb-10">
                 <p>
                   <span>1</span>
@@ -175,15 +229,15 @@ const Profile = () => {
             <div>
               <div className="flex py-2">
                 <p className="text-lg text-gray-500 mr-40">Name</p>
-                <p className="text-lg">{user.name}</p>
+                <p className="text-lg">{name}</p>
               </div>
               <div className="flex py-2">
                 <p className="text-lg text-gray-500 mr-40">Email</p>
-                <p className="text-lg">{user.email}</p>
+                <p className="text-lg">{email}</p>
               </div>
               <div className="flex py-2">
                 <p className="text-lg text-gray-500 mr-[10.7rem]">Role</p>
-                <p className="text-lg">{user.role}</p>
+                <p className="text-lg">{role}</p>
               </div>
             </div>
           </div>

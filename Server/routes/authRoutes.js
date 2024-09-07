@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const cors = require('cors');
-const { loginUser, registerUser, logoutUser, timeValidate, updateProfile , userDetails } = require('../controllers/authControllers');
-const upload = require('../middleware/upload');
+const { loginUser, registerUser, logoutUser, timeValidate, updateProfile, verifyPhoto, updateUserDetails, userDetails } = require('../controllers/authControllers');
+const uploadFields = require('../middleware/upload');
 
 router.use(
     cors({
@@ -15,7 +15,9 @@ router.post('/', loginUser);
 router.post('/register', registerUser);
 router.get('/logout',logoutUser);
 router.get('/profile', timeValidate);
-router.post('/updateProfile', upload.single('profilePhoto'), updateProfile);
+router.post('/updateProfile', uploadFields, updateProfile);
+router.get('/verifyPhoto', verifyPhoto);
+router.post('/updateUserDetails', updateUserDetails);
 router.get('/userDetails', userDetails);
 
 module.exports = router;

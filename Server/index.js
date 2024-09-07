@@ -5,6 +5,9 @@ const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const dotenv = require('dotenv').config();
 
+app.use('/profilePhoto', express.static('profilePhoto'));
+app.use('/coverPhoto', express.static('coverPhoto'));
+
 mongoose.connect(process.env.MONGODB_CONNECTION_URL);
 
 const db = mongoose.connection;
