@@ -6,7 +6,7 @@ import Login from './Pages/Login';
 import Home from './Pages/Home';
 import Members from './Pages/Members';
 import Profile from './Pages/Profile';
-import Settings from './Pages/Settings';
+import Saved from './Pages/Saved';
 import Layout from './Components/Layout';
 import PrivateRoute from '../PrivateRoute/PrivateRoute';
 import { UserContextProvider } from '../Context/UserContext';
@@ -40,9 +40,9 @@ function App() {
                                 <Profile />
                             </PrivateRoute>
                         } />
-                        <Route path="/settings" element={
+                        <Route path="/saved" element={
                             <PrivateRoute>
-                                <Settings />
+                                <Saved />
                             </PrivateRoute>
                         } />
                     </Route>

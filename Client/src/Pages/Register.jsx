@@ -47,7 +47,7 @@ const Register = () => {
             } else {
                 setData({});
                 toast.success('Congratulations! You are officially part of us.Lets get started');
-                navigate('/home');
+                navigate('/');
             }
         } catch(err) {
             console.log(err);

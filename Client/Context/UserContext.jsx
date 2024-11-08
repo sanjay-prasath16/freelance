@@ -18,8 +18,8 @@ export function UserContextProvider({ children }) {
             try {
                 const response = await axios.get('/userDetails');
 
-                if (response.data && response.data.id) {
-                    setUser(response.data);
+                if (response.data && response.data.user) {
+                    setUser(response.data.user);
 
                     if (location.pathname === '/' || location.pathname === '/register') {
                         navigate('/home');
@@ -39,7 +39,7 @@ export function UserContextProvider({ children }) {
         if (!user && !errorHandled) {
             fetchData();
         }
-    }, [navigate, location, user, errorHandled]);
+    }, [navigate, location.pathname, user, errorHandled]);
 
     if (loading) {
         return <div>Loading...</div>;

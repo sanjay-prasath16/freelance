@@ -3,10 +3,11 @@ const app = express();
 const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
-const dotenv = require('dotenv').config();
+require('dotenv').config();
 
 app.use('/profilePhoto', express.static('profilePhoto'));
 app.use('/coverPhoto', express.static('coverPhoto'));
+app.use('/postPhotos', express.static('postPhotos'));
 
 mongoose.connect(process.env.MONGODB_CONNECTION_URL);
 

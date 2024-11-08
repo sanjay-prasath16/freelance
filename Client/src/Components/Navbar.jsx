@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState,useContext } from 'react';
+import { UserContext } from '../../Context/UserContext';
 import axios from 'axios';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
@@ -7,11 +8,13 @@ import DefaultProfile from '../assets/defaultProfile.png';
 import { RiHomeLine } from "react-icons/ri";
 import { BsPersonAdd } from "react-icons/bs";
 import { IoPersonCircleOutline } from "react-icons/io5";
-import { TbSettings } from "react-icons/tb";
+import { FaRegBookmark } from "react-icons/fa";
 import { FaTimes } from "react-icons/fa";
 import { GrAppsRounded } from "react-icons/gr";
 
 const Navbar = () => {
+  const { user } = useContext(UserContext);
+
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -66,13 +69,13 @@ const Navbar = () => {
             Members
           </span>
         </Link>
-        <Link to='/settings' className='group mr-2 py-4 px-5 relative'>
+        <Link to='/saved' className='group mr-2 py-4 px-5 relative'>
           <div className={`hover:bg-gray-100 rounded-lg p-4`}>
-            <TbSettings className='text-2xl cursor-pointer' />
+            <FaRegBookmark className='text-2xl cursor-pointer' />
           </div>
-          <div className={`${location.pathname === '/settings' ? 'border-b-2 border-black' : ''}`}></div>
+          <div className={`${location.pathname === '/saved' ? 'border-b-2 border-black' : ''}`}></div>
           <span className="absolute bottom-[-15px] left-4 bg-black text-white text-sm rounded-lg px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            Settings
+            Saved
           </span>
         </Link>
         <Link to='/profile' className='group mr-2 py-4 px-5 relative'>
@@ -96,8 +99,8 @@ const Navbar = () => {
             <span className="ml-2">Members</span>
           </Link>
           <Link to='/settings' className='py-4 px-5 border-t border-gray-200 flex' onClick={closeNavMenu}>
-            <TbSettings className='text-2xl cursor-pointer' />
-            <span className="ml-2">Settings</span>
+            <FaRegBookmark className='text-2xl cursor-pointer font-extrabold' />
+            <span className="ml-2">Saved</span>
           </Link>
           <Link to='/profile' className='py-4 px-5 border-t border-gray-200 flex' onClick={closeNavMenu}>
             <IoPersonCircleOutline className='text-2xl cursor-pointer' />
@@ -105,7 +108,7 @@ const Navbar = () => {
           </Link>
           <div className="border-t border-gray-200 py-4 px-5 flex" onClick={toggleDropdown}>
             <IoPersonCircleOutline className='text-2xl cursor-pointer' />
-            <span className="ml-2">Sanjay</span>
+            <span className="ml-2">{user.registerDetails.username}</span>
           </div>
           {isDropdownOpen && (
             <div className="flex flex-col bg-white border-t border-gray-200">
@@ -118,13 +121,17 @@ const Navbar = () => {
         </div>
       </div>
       <div className='mr-8 hidden sm:flex border border-white hover:bg-gray-100 rounded-lg px-2 cursor-pointer py-2 relative' onClick={toggleDropdown}>
-        <p className='mt-2 font-semibold'>Sanjay</p>
-        <img src={DefaultProfile} alt="" className='w-10 ml-2' />
+        <p className='mt-2 font-semibold'>{user.registerDetails.username}</p>
+        <img 
+          src={user.photoDetails && user.photoDetails.profilePhoto ? `${import.meta.env.VITE_REACT_BACKEND_URL}/${user.photoDetails.profilePhoto}` : DefaultProfile}
+          alt="Profile" 
+          className='ml-2 rounded-full h-10 w-10'
+        />
         {isDropdownOpen && (
           <div className="absolute top-16 right-0 bg-white border border-gray-300 rounded-lg w-40 shadow-lg z-50 text-center p-1">
             <Link to='/members' className='block py-2 hover:bg-gray-100 rounded-lg pb-2'>Followers</Link>
             <Link to='/members' className='block py-2 hover:bg-gray-100 rounded-lg pb-2'>Followings</Link>
-            <Link to='/profile' className='block py-2 hover:bg-gray-100 rounded-lg pb-2'>Posts</Link>
+            <Link to='/saved' className='block py-2 hover:bg-gray-100 rounded-lg pb-2'>Saved Posts</Link>
             <button onClick={logout} className='block w-full py-2 hover:bg-gray-100 rounded-lg pb-2'>Logout</button>
           </div>
         )}
