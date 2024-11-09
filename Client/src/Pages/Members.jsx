@@ -1,5 +1,6 @@
 import { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
+import DefaultProfile from '../assets/defaultProfile.png';
 import { UserContext } from '../../Context/UserContext';
 
 const Members = () => {
@@ -56,7 +57,7 @@ const Members = () => {
                 {members && members.length > 0 ? (
                     members.map(member => (
                         <div key={member._id} className="mb-4 border border-solid px-3 py-4 mx-5 mr-10 rounded-lg w-1/2 flex flex-col justify-center items-center">
-                            <img src={`http://localhost:3001/${member.profilePhoto}`} alt="" className='rounded-full mt-10 h-32 w-32' />
+                            <img src={user.photoDetails && user.photoDetails.profilePhoto ? `${import.meta.env.VITE_REACT_BACKEND_URL}/${user.photoDetails.profilePhoto}` : DefaultProfile} alt="" className='rounded-full mt-10 h-32 w-32' />
                             <p className='border border-solid text-xs text-white font-bold py-1 px-2 rounded-lg -mt-5' style={{ backgroundColor: getRandomColor() }}>{member.role}</p>
                             <p className="font-medium mt-4 mb-4">{member.username}</p>
                             <p className='mb-2'>{member.followersCount || 0} followers</p>

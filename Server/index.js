@@ -10,6 +10,7 @@ app.use('/coverPhoto', express.static('coverPhoto'));
 app.use('/postPhotos', express.static('postPhotos'));
 
 mongoose.connect(process.env.MONGODB_CONNECTION_URL);
+console.log('MongoDB URL:', process.env.MONGODB_CONNECTION_URL);
 
 const db = mongoose.connection;
 

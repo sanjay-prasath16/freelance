@@ -15,6 +15,8 @@ import { GrAppsRounded } from "react-icons/gr";
 const Navbar = () => {
   const { user } = useContext(UserContext);
 
+  console.log(user);
+
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
