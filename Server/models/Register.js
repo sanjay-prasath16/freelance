@@ -8,4 +8,4 @@ const userSchema = new mongoose.Schema({
 });
   
 
-module.exports = mongoose.model('register', userSchema);
+module.exports = mongoose.model('local_register', userSchema);

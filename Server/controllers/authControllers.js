@@ -288,6 +288,7 @@ const fetchPosts = async (req, res) => {
             .populate({
                 path: 'userId',
                 select: 'username role',
+                model: 'local_register',
             });
 
         const users = await Promise.all(
